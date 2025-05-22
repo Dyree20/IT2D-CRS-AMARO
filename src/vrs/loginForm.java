@@ -246,7 +246,6 @@ public class loginForm extends javax.swing.JFrame {
         u_user = new javax.swing.JTextField();
         u_pass = new javax.swing.JPasswordField();
         forgot_pass = new javax.swing.JLabel();
-        show_pass = new javax.swing.JCheckBox("Show Password");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -257,7 +256,7 @@ public class loginForm extends javax.swing.JFrame {
 
         jLabel1.setFont(new java.awt.Font("Verdana", 3, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("WELCOME TO VEHICLE RENTAL SYSTEM");
+        jLabel1.setText("WELCOME TO CAR RENTAL SYSTEM");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -335,10 +334,6 @@ public class loginForm extends javax.swing.JFrame {
         forgot_pass.setForeground(new java.awt.Color(0, 204, 204));
         forgot_pass.setText("Forgot Password?");
         jPanel1.add(forgot_pass, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 290, -1, -1));
-
-        show_pass.setFont(new java.awt.Font("Tahoma", 1, 11));
-        show_pass.setForeground(new java.awt.Color(0, 204, 204));
-        jPanel1.add(show_pass, new org.netbeans.lib.awtextra.AbsoluteConstraints(530, 260, 120, 30));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

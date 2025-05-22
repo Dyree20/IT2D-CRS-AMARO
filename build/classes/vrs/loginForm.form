@@ -81,7 +81,7 @@
                   <Font name="Verdana" size="24" style="3"/>
                 </Property>
                 <Property name="horizontalAlignment" type="int" value="0"/>
-                <Property name="text" type="java.lang.String" value="WELCOME TO VEHICLE RENTAL SYSTEM"/>
+                <Property name="text" type="java.lang.String" value="WELCOME TO CAR RENTAL SYSTEM"/>
               </Properties>
             </Component>
           </SubComponents>
