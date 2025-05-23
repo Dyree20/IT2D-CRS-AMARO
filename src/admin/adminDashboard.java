@@ -239,12 +239,12 @@ public void setUsername(String username) {
         jPanel1.setBackground(new java.awt.Color(255, 51, 51));
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel3.setBackground(new java.awt.Color(255, 153, 51));
+        jPanel3.setBackground(new java.awt.Color(255, 255, 51));
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 3, 36)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Rockwell Condensed", 3, 36)); // NOI18N
         jLabel1.setText("ADMIN PANEL");
-        jPanel3.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 0, 504, 85));
+        jPanel3.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 504, 80));
 
         logout.setText("LOGOUT");
         logout.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -261,7 +261,7 @@ public void setUsername(String username) {
 
         jPanel1.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1090, -1));
 
-        jPanel2.setBackground(new java.awt.Color(255, 153, 0));
+        jPanel2.setBackground(new java.awt.Color(255, 255, 0));
 
         vehicles_dash.setFont(new java.awt.Font("Microsoft YaHei", 3, 12)); // NOI18N
         vehicles_dash.setText("VEHICLES");
@@ -305,7 +305,7 @@ public void setUsername(String username) {
             }
         });
 
-        welcomePanel.setBackground(new java.awt.Color(255, 153, 0));
+        welcomePanel.setBackground(new java.awt.Color(255, 255, 0));
 
         javax.swing.GroupLayout welcomePanelLayout = new javax.swing.GroupLayout(welcomePanel);
         welcomePanel.setLayout(welcomePanelLayout);
@@ -478,15 +478,7 @@ public void setUsername(String username) {
         showInternalFrame(new user_logs());
     }
 
-    private void reset_requestsActionPerformed(java.awt.event.ActionEvent evt) {
-        
-        String userIp = "Unknown";
-        try { userIp = InetAddress.getLocalHost().getHostAddress(); } catch (UnknownHostException e) {}
-        Logger.log("Button Click", "Admin clicked: Reset Requests", currentUsername, userIp);
-        resetButtonColors();
-        
-        showInternalFrame(new passwordResetRequests());
-    }
+    
 
     private void a_clientsActionPerformed(java.awt.event.ActionEvent evt) {
         

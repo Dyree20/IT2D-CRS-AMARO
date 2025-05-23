@@ -82,10 +82,6 @@
     </path>
     
     <target name="download-dependencies">
-        <mkdir dir="lib/hikaricp"/>
-        <get src="https://repo1.maven.org/maven2/com/zaxxer/HikariCP/5.0.1/HikariCP-5.0.1.jar" 
-             dest="lib/hikaricp/HikariCP-5.0.1.jar" 
-             usetimestamp="true"/>
     </target>
     
     <target name="compile" depends="download-dependencies">

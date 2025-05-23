@@ -13,6 +13,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -55,6 +56,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.awt.RenderingHints;
 
 /**
  *
@@ -115,83 +117,148 @@ public class add_vehicles extends javax.swing.JInternalFrame {
     }
 
     public void addVehicleCard(String name, String type, String price, String status, Object imageSource) {
-        JPanel card = new JPanel();
-        card.setBackground(new java.awt.Color(153, 0, 0));
-        card.setMaximumSize(new java.awt.Dimension(880, 180));
-        card.setPreferredSize(new java.awt.Dimension(880, 180));
-        card.setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.BLACK));
-        card.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
-
-        // Load and scale image
-        javax.swing.JLabel imageLabel = new javax.swing.JLabel();
-        imageLabel.setPreferredSize(new Dimension(150, 100));
-        
-        try {
-            ImageIcon icon = null;
-            if (imageSource instanceof byte[]) {
-                icon = new ImageIcon((byte[]) imageSource);
-            } else if (imageSource instanceof String) {
-                icon = new ImageIcon((String) imageSource);
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(40, 40, 40));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
             }
-            
-            if (icon != null) {
-                Image img = icon.getImage().getScaledInstance(150, 100, Image.SCALE_SMOOTH);
-                imageLabel.setIcon(new ImageIcon(img));
-            } else {
+        };
+        card.setOpaque(false);
+        card.setPreferredSize(new Dimension(320, 220));
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 2, true),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        card.setLayout(new BorderLayout(0, 0));
+
+        // Image panel (top)
+        JPanel imagePanel = new JPanel();
+        imagePanel.setPreferredSize(new Dimension(300, 120));
+        imagePanel.setBackground(new Color(40, 40, 40));
+        imagePanel.setLayout(new BorderLayout());
+        JLabel imageLabel = new JLabel();
+        imageLabel.setHorizontalAlignment(JLabel.CENTER);
+        if (imageSource != null) {
+            try {
+                ImageIcon icon = null;
+                if (imageSource instanceof byte[]) {
+                    icon = new ImageIcon((byte[]) imageSource);
+                } else if (imageSource instanceof String) {
+                    icon = new ImageIcon((String) imageSource);
+                }
+                if (icon != null) {
+                    Image img = icon.getImage();
+                    int maxWidth = 280;
+                    int maxHeight = 120;
+                    int origWidth = icon.getIconWidth();
+                    int origHeight = icon.getIconHeight();
+                    int targetWidth = origWidth;
+                    int targetHeight = origHeight;
+                    if (origWidth > maxWidth || origHeight > maxHeight) {
+                        double widthRatio = (double) maxWidth / origWidth;
+                        double heightRatio = (double) maxHeight / origHeight;
+                        double ratio = Math.min(widthRatio, heightRatio);
+                        targetWidth = (int) (origWidth * ratio);
+                        targetHeight = (int) (origHeight * ratio);
+                    }
+                    Image scaledImg = img.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
+                    imageLabel.setIcon(new ImageIcon(scaledImg));
+                } else {
+                    imageLabel.setText("No Image");
+                    imageLabel.setForeground(Color.GRAY);
+                }
+            } catch (Exception e) {
                 imageLabel.setText("No Image");
-                imageLabel.setHorizontalAlignment(JLabel.CENTER);
-                imageLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            }
-        } catch (Exception e) {
-            imageLabel.setText("No Image");
-            imageLabel.setHorizontalAlignment(JLabel.CENTER);
-            imageLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        }
-        
-        card.add(imageLabel);
-
-        // Info Panel
-        JPanel infoPanel = new JPanel();
-        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-        infoPanel.setBackground(new java.awt.Color(153, 0, 0));
-        
-        JLabel nameLabel = new JLabel("Name: " + name);
-        JLabel typeLabel = new JLabel("Type: " + type);
-        JLabel priceLabel = new JLabel("Price: " + price);
-        JLabel statusLabel = new JLabel("Status: " + status);
-        if (status != null) {
-            if (status.equalsIgnoreCase("available")) {
-                statusLabel.setForeground(new Color(0, 153, 0)); // Green
-            } else if (status.equalsIgnoreCase("rented")) {
-                statusLabel.setForeground(Color.RED);
-            } else if (status.equalsIgnoreCase("maintenance")) {
-                statusLabel.setForeground(new Color(255, 140, 0)); // Orange
-            } else {
-                statusLabel.setForeground(Color.GRAY);
+                imageLabel.setForeground(Color.GRAY);
             }
         } else {
-            statusLabel.setForeground(Color.GRAY);
+            imageLabel.setText("No Image");
+            imageLabel.setForeground(Color.GRAY);
         }
-        statusLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        infoPanel.add(statusLabel);
-        
-        JLabel[] labels = {nameLabel, typeLabel, priceLabel};
-        for (JLabel label : labels) {
-            label.setForeground(Color.WHITE);
-            label.setFont(new Font("Arial", Font.PLAIN, 14));
-            infoPanel.add(label);
-        }
-        
-        card.add(infoPanel);
+        imagePanel.add(imageLabel, BorderLayout.CENTER);
+        card.add(imagePanel, BorderLayout.NORTH);
 
-        // Mouse click listener to select card
+        // Info panel (bottom)
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setBackground(new Color(40, 40, 40));
+        infoPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+
+        JLabel nameLabel = new JLabel(name);
+        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 15));
+        nameLabel.setForeground(Color.WHITE);
+        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoPanel.add(nameLabel);
+        infoPanel.add(Box.createVerticalStrut(3));
+
+        JLabel typeLabel = new JLabel(type);
+        typeLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+        typeLabel.setForeground(new Color(180, 180, 180));
+        typeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoPanel.add(typeLabel);
+        infoPanel.add(Box.createVerticalStrut(2));
+
+        JLabel priceLabel = new JLabel(price);
+        priceLabel.setFont(new Font("Tahoma", Font.BOLD, 13));
+        priceLabel.setForeground(new Color(0, 200, 100));
+        priceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoPanel.add(priceLabel);
+        infoPanel.add(Box.createVerticalStrut(4));
+
+        // Status badge
+        JLabel statusLabel = new JLabel(status != null ? status.toUpperCase() : "");
+        statusLabel.setFont(new Font("Tahoma", Font.BOLD, 11));
+        statusLabel.setForeground(Color.WHITE);
+        statusLabel.setOpaque(true);
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(2, 8, 2, 8));
+        Color statusColor;
+        if (status != null && status.equalsIgnoreCase("available")) {
+            statusColor = new Color(0, 150, 0);
+        } else if (status != null && status.equalsIgnoreCase("rented")) {
+            statusColor = new Color(200, 0, 0);
+        } else if (status != null && status.equalsIgnoreCase("maintenance")) {
+            statusColor = new Color(255, 140, 0);
+        } else {
+            statusColor = new Color(100, 100, 100);
+        }
+        statusLabel.setBackground(statusColor);
+        statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoPanel.add(statusLabel);
+
+        card.add(infoPanel, BorderLayout.CENTER);
+
+        // Hover and selection effect
         card.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(0, 100, 200), 2, true),
+                    BorderFactory.createEmptyBorder(9, 9, 9, 9)
+                ));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                if (card != selectedCard) {
+                    card.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(200, 200, 200), 2, true),
+                        BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                    ));
+                }
+            }
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (selectedCard != null) {
-                    selectedCard.setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.BLACK));
+                if (selectedCard != null && selectedCard != card) {
+                    selectedCard.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(200, 200, 200), 2, true),
+                        BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                    ));
                 }
                 selectedCard = card;
-                card.setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.YELLOW, 3));
+                card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(0, 100, 200), 3, true),
+                    BorderFactory.createEmptyBorder(8, 8, 8, 8)
+                ));
             }
         });
 
@@ -297,6 +364,11 @@ public class add_vehicles extends javax.swing.JInternalFrame {
     try {
         // Clear the current list
         vehicleListPanel.removeAll();
+        // Set two-column grid layout and dark background
+        vehicleListPanel.setLayout(new GridLayout(0, 2, 20, 20));
+        vehicleListPanel.setBackground(new Color(30, 30, 30));
+        // Remove any large preferred size
+        vehicleListPanel.setPreferredSize(null);
         Connection conn = new dbConnector().getConnection();
         String selectedType = mv_type.getSelectedItem() != null ? mv_type.getSelectedItem().toString() : "All";
         String searchText = txtSearch.getText().trim();

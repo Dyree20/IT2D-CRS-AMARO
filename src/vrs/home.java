@@ -8,6 +8,9 @@ import net.proteanit.sql.DbUtils;
 import config.Logger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.Box;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -46,24 +49,89 @@ public class home extends javax.swing.JInternalFrame {
     }
    
     public void displayData(){
-        
-     try{
-     
-     dbConnector db = new dbConnector();
-     ResultSet rs = db.getData("SELECT * FROM tbl_users");
-     info.setModel(DbUtils.resultSetToTableModel(rs));
-     rs.close();
-     
-     }catch(SQLException ex){
-     
-         System.out.println("Errors:"+ex.getMessage());
-     
-     }
-     
-       
-        
-        
-        
+        userCardsPanel.removeAll();
+        try {
+            dbConnector db = new dbConnector();
+            ResultSet rs = db.getData("SELECT * FROM tbl_users");
+            while (rs.next()) {
+                String name = rs.getString("u_name");
+                String username = rs.getString("u_username");
+                String email = rs.getString("u_email");
+                String phone = rs.getString("u_phone");
+                String role = rs.getString("u_role");
+                String status = rs.getString("u_status");
+                JPanel card = new JPanel();
+                card.setLayout(new java.awt.BorderLayout(0, 0));
+                card.setPreferredSize(new java.awt.Dimension(400, 180));
+                card.setBackground(java.awt.Color.WHITE);
+                card.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200), 2, true),
+                    javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                ));
+                // Info panel
+                JPanel infoPanel = new JPanel();
+                infoPanel.setLayout(new javax.swing.BoxLayout(infoPanel, javax.swing.BoxLayout.Y_AXIS));
+                infoPanel.setBackground(java.awt.Color.WHITE);
+                infoPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+                JLabel nameLabel = new JLabel(name);
+                nameLabel.setFont(new java.awt.Font("Tahoma", java.awt.Font.BOLD, 18));
+                nameLabel.setForeground(java.awt.Color.BLACK);
+                infoPanel.add(nameLabel);
+                infoPanel.add(Box.createVerticalStrut(6));
+                JLabel usernameLabel = new JLabel("Username: " + username);
+                usernameLabel.setFont(new java.awt.Font("Tahoma", java.awt.Font.PLAIN, 14));
+                infoPanel.add(usernameLabel);
+                JLabel emailLabel = new JLabel("Email: " + email);
+                emailLabel.setFont(new java.awt.Font("Tahoma", java.awt.Font.PLAIN, 14));
+                infoPanel.add(emailLabel);
+                JLabel phoneLabel = new JLabel("Phone: " + phone);
+                phoneLabel.setFont(new java.awt.Font("Tahoma", java.awt.Font.PLAIN, 14));
+                infoPanel.add(phoneLabel);
+                JLabel roleLabel = new JLabel("Role: " + role);
+                roleLabel.setFont(new java.awt.Font("Tahoma", java.awt.Font.PLAIN, 14));
+                infoPanel.add(roleLabel);
+                // Status badge
+                JLabel statusLabel = new JLabel(status != null ? status.toUpperCase() : "");
+                statusLabel.setFont(new java.awt.Font("Tahoma", java.awt.Font.BOLD, 12));
+                statusLabel.setForeground(java.awt.Color.WHITE);
+                statusLabel.setOpaque(true);
+                statusLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 12, 4, 12));
+                java.awt.Color statusColor;
+                if (status != null && status.equalsIgnoreCase("active")) {
+                    statusColor = new java.awt.Color(0, 150, 0);
+                } else if (status != null && status.equalsIgnoreCase("inactive")) {
+                    statusColor = new java.awt.Color(200, 0, 0);
+                } else {
+                    statusColor = new java.awt.Color(100, 100, 100);
+                }
+                statusLabel.setBackground(statusColor);
+                statusLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+                infoPanel.add(Box.createVerticalStrut(8));
+                infoPanel.add(statusLabel);
+                card.add(infoPanel, java.awt.BorderLayout.CENTER);
+                // Hover effect
+                card.addMouseListener(new java.awt.event.MouseAdapter() {
+                    public void mouseEntered(java.awt.event.MouseEvent evt) {
+                        card.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                            javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 100, 200), 2, true),
+                            javax.swing.BorderFactory.createEmptyBorder(14, 14, 14, 14)
+                        ));
+                    }
+                    public void mouseExited(java.awt.event.MouseEvent evt) {
+                        card.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                            javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200), 2, true),
+                            javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                        ));
+                    }
+                });
+                userCardsPanel.add(card);
+            }
+            rs.close();
+            userCardsPanel.revalidate();
+            userCardsPanel.repaint();
+        } catch (SQLException ex) {
+            System.out.println("Errors:" + ex.getMessage());
+        }
     }
         
         
@@ -71,69 +139,40 @@ public class home extends javax.swing.JInternalFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        info = new javax.swing.JTable();
-        jScrollBar1 = new javax.swing.JScrollBar();
-
-        setPreferredSize(new java.awt.Dimension(930, 640));
-
+        userCardsPanel = new JPanel();
+        userCardsPanel.setLayout(new java.awt.GridLayout(0, 2, 20, 20));
+        userCardsPanel.setBackground(new java.awt.Color(240, 240, 240));
+        jScrollPane1.setViewportView(userCardsPanel);
         jPanel1.setPreferredSize(new java.awt.Dimension(930, 640));
-
-        info.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        info.setRowHeight(30);
-        jScrollPane1.setViewportView(info);
-
-        jScrollBar1.setBackground(new java.awt.Color(255, 51, 51));
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 896, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 11, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 914, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jScrollBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 610, Short.MAX_VALUE)
         );
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 914, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 610, Short.MAX_VALUE)
         );
-
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTable info;
+    private javax.swing.JPanel userCardsPanel;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollBar jScrollBar1;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 }

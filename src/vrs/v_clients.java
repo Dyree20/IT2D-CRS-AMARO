@@ -278,141 +278,341 @@ public class v_clients extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void loadClientCards(String searchText) {
-        System.out.println("Loading client cards...");
-        clientsContainer.removeAll();
-        clientsContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        int rowCount = 0;
         try {
+            clientsContainer.removeAll();
+            clientsContainer.setLayout(new GridLayout(0, 2, 15, 15));
+            clientsContainer.setBackground(new Color(240, 240, 240));
+
             Connection con = new dbConnector().getConnection();
-            String query = "SELECT c.*, r.r_start_date, r.r_end_date, r.r_total_amount, v.v_make, v.v_model, v.v_plate, v.v_type, v.v_year " +
+            String query = "SELECT c.*, r.*, v.v_make, v.v_model, v.v_plate " +
                            "FROM tbl_clients c " +
                            "LEFT JOIN tbl_rentals r ON c.c_id = r.r_client_id " +
-                           "LEFT JOIN tbl_vehicles v ON r.r_vehicle_id = v.v_id";
-            if (searchText != null && !searchText.trim().isEmpty()) {
-                query += " WHERE c.c_name LIKE ? OR c.c_email LIKE ? OR c.c_phone LIKE ?";
-            }
+                          "LEFT JOIN tbl_vehicles v ON r.r_vehicle_id = v.v_id " +
+                          "WHERE LOWER(c.c_name) LIKE ? OR LOWER(c.c_phone) LIKE ? OR LOWER(c.c_email) LIKE ? " +
+                          "ORDER BY r.r_start_date DESC";
+            
             PreparedStatement pst = con.prepareStatement(query);
-            if (searchText != null && !searchText.trim().isEmpty()) {
-                String likeText = "%" + searchText.trim() + "%";
-                pst.setString(1, likeText);
-                pst.setString(2, likeText);
-                pst.setString(3, likeText);
-            }
+            String searchPattern = "%" + searchText.toLowerCase() + "%";
+            pst.setString(1, searchPattern);
+            pst.setString(2, searchPattern);
+            pst.setString(3, searchPattern);
+            
             ResultSet rs = pst.executeQuery();
+            boolean hasResults = false;
+            
             while (rs.next()) {
-                rowCount++;
-                System.out.println("Loaded client: " + rs.getString("c_name"));
-                // Card style similar to add_vehicles
-                JPanel card = new JPanel();
-                card.setPreferredSize(new Dimension(420, 120));
-                card.setBackground(new Color(110, 0, 20));
-                card.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-                card.setLayout(null);
+                hasResults = true;
+                final int clientId = rs.getInt("c_id");
+                final String name = rs.getString("c_name");
+                final String phone = rs.getString("c_phone");
+                final String email = rs.getString("c_email");
+                final String address = rs.getString("c_address");
+                final byte[] imageData = rs.getBytes("c_image");
+                
+                // Create main card panel
+                JPanel cardPanel = new JPanel();
+                cardPanel.setLayout(new BorderLayout(0, 0));
+                cardPanel.setPreferredSize(new Dimension(450, 500));
+                cardPanel.setBackground(Color.WHITE);
+                cardPanel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                    BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                ));
 
-                // Client image
-                JLabel imgLabel = new JLabel();
-                imgLabel.setBounds(10, 10, 100, 100);
-                byte[] imageBytes = rs.getBytes("c_image");
-                if (imageBytes != null && imageBytes.length > 0) {
-                    ImageIcon icon = new ImageIcon(imageBytes);
-                    Image img = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                    imgLabel.setIcon(new ImageIcon(img));
+                // Client info panel (top)
+                JPanel infoPanel = new JPanel();
+                infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+                infoPanel.setBackground(Color.WHITE);
+                infoPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
+                // Client image and name
+                JPanel headerPanel = new JPanel(new BorderLayout(10, 0));
+                headerPanel.setBackground(Color.WHITE);
+                
+                JLabel imageLabel = new JLabel();
+                imageLabel.setPreferredSize(new Dimension(80, 80));
+                if (imageData != null && imageData.length > 0) {
+                    ImageIcon imageIcon = new ImageIcon(imageData);
+                    Image img = imageIcon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                    imageLabel.setIcon(new ImageIcon(img));
                 } else {
-                    imgLabel.setIcon(null);
+                    imageLabel.setText("No Image");
+                    imageLabel.setFont(new Font("Tahoma", Font.ITALIC, 12));
+                    imageLabel.setForeground(Color.GRAY);
+                    imageLabel.setHorizontalAlignment(JLabel.CENTER);
                 }
-                card.add(imgLabel);
+                
+                JLabel nameLabel = new JLabel(name);
+                nameLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+                headerPanel.add(imageLabel, BorderLayout.WEST);
+                headerPanel.add(nameLabel, BorderLayout.CENTER);
+                infoPanel.add(headerPanel);
+                infoPanel.add(Box.createVerticalStrut(15));
 
-                // Info (use HTML for styling)
-                String name = rs.getString("c_name");
-                String phone = rs.getString("c_phone");
-                String address = rs.getString("c_address");
-                String email = rs.getString("c_email");
-                String rentedVehicle = rs.getString("v_model");
-                String amount = rs.getString("r_total_amount");
-                String startDate = rs.getString("r_start_date");
-                String endDate = rs.getString("r_end_date");
-                String info = "<html>"
-                    + "<b>Name:</b> " + (name != null ? name : "") + "<br>"
-                    + "<b>Phone:</b> " + (phone != null ? phone : "") + "<br>"
-                    + "<b>Address:</b> " + (address != null ? address : "") + "<br>"
-                    + "<b>Email:</b> " + (email != null ? email : "") + "<br>"
-                    + "<b>Rented Vehicle:</b> " + (rentedVehicle != null ? rentedVehicle : "") + "<br>"
-                    + "<b>Amount:</b> " + (amount != null ? amount : "") + "<br>"
-                    + "<b>Start:</b> " + (startDate != null ? startDate : "") + " <b>End:</b> " + (endDate != null ? endDate : "")
-                    + "</html>";
-                JLabel infoLabel = new JLabel(info);
-                infoLabel.setForeground(Color.WHITE);
-                infoLabel.setBounds(120, 10, 280, 100);
-                card.add(infoLabel);
+                // Contact info
+                JPanel contactPanel = new JPanel();
+                contactPanel.setLayout(new BoxLayout(contactPanel, BoxLayout.Y_AXIS));
+                contactPanel.setBackground(Color.WHITE);
+                
+                addInfoRow(contactPanel, "Phone:", phone);
+                addInfoRow(contactPanel, "Email:", email);
+                addInfoRow(contactPanel, "Address:", address);
+                
+                infoPanel.add(contactPanel);
+                cardPanel.add(infoPanel, BorderLayout.NORTH);
 
-                // Card click: fill bottom panel
-                final String fName = name;
-                final String fPhone = phone;
-                final String fAddress = address;
-                final String fEmail = email;
-                final String fRentedVehicle = rentedVehicle;
-                final String fAmount = amount;
-                final String fStartDate = startDate;
-                final String fEndDate = endDate;
-                final byte[] fImageBytes = imageBytes;
-                card.addMouseListener(new java.awt.event.MouseAdapter() {
+                // Rental history panel (bottom)
+                JPanel historyPanel = new JPanel();
+                historyPanel.setLayout(new BoxLayout(historyPanel, BoxLayout.Y_AXIS));
+                historyPanel.setBackground(new Color(245, 245, 245));
+                historyPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+                JLabel historyTitle = new JLabel("Rental History");
+                historyTitle.setFont(new Font("Tahoma", Font.BOLD, 16));
+                historyTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+                historyPanel.add(historyTitle);
+                historyPanel.add(Box.createVerticalStrut(10));
+
+                // Get rental history
+                String rentalQuery = "SELECT r.*, v.v_make, v.v_model, v.v_plate " +
+                                   "FROM tbl_rentals r " +
+                                   "JOIN tbl_vehicles v ON r.r_vehicle_id = v.v_id " +
+                                   "WHERE r.r_client_id = ? " +
+                                   "ORDER BY r.r_start_date DESC";
+                PreparedStatement rentalStmt = con.prepareStatement(rentalQuery);
+                rentalStmt.setInt(1, clientId);
+                ResultSet rentalRs = rentalStmt.executeQuery();
+
+                boolean hasRentals = false;
+                while (rentalRs.next()) {
+                    hasRentals = true;
+                    String vehicle = rentalRs.getString("v_make") + " " + rentalRs.getString("v_model");
+                    String plate = rentalRs.getString("v_plate");
+                    String startDate = rentalRs.getString("r_start_date");
+                    String endDate = rentalRs.getString("r_end_date");
+                    double amount = rentalRs.getDouble("r_total_amount");
+                    String status = rentalRs.getString("r_status");
+
+                    JPanel rentalPanel = createRentalPanel(vehicle, plate, startDate, endDate, amount, status);
+                    historyPanel.add(rentalPanel);
+                    historyPanel.add(Box.createVerticalStrut(10));
+                }
+
+                if (!hasRentals) {
+                    JLabel noRentalsLabel = new JLabel("No rental history");
+                    noRentalsLabel.setFont(new Font("Tahoma", Font.ITALIC, 14));
+                    noRentalsLabel.setForeground(Color.GRAY);
+                    noRentalsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    historyPanel.add(noRentalsLabel);
+                }
+
+                cardPanel.add(historyPanel, BorderLayout.CENTER);
+
+                // Add hover effect
+                cardPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+                    public void mouseEntered(java.awt.event.MouseEvent evt) {
+                        if (cardPanel != selectedCard) {
+                            cardPanel.setBorder(BorderFactory.createCompoundBorder(
+                                BorderFactory.createLineBorder(new Color(0, 100, 200), 2),
+                                BorderFactory.createEmptyBorder(14, 14, 14, 14)
+                            ));
+                        }
+                    }
+
+                    public void mouseExited(java.awt.event.MouseEvent evt) {
+                        if (cardPanel != selectedCard) {
+                            cardPanel.setBorder(BorderFactory.createCompoundBorder(
+                                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                            ));
+                        }
+                    }
+
                     public void mouseClicked(java.awt.event.MouseEvent evt) {
-                        jTextField1.setText(fName);
-                        jTextField3.setText(fPhone);
-                        jTextField2.setText(fAddress);
-                        jTextField4.setText(fEmail);
-                        jTextField5.setText(fRentedVehicle);
-                        jTextField6.setText(fAmount);
-                        jTextField7.setText(fStartDate);
-                        jTextField8.setText(fEndDate);
-                        // Set client image if available
-                        if (fImageBytes != null && fImageBytes.length > 0) {
-                            ImageIcon icon = new ImageIcon(fImageBytes);
-                            Image img = icon.getImage().getScaledInstance(jLabel2.getWidth(), jLabel2.getHeight(), Image.SCALE_SMOOTH);
-                            jLabel2.setIcon(new ImageIcon(img));
-                        } else {
-                            jLabel2.setIcon(null);
-                        }
-                        // Visual selection effect
-                        if (selectedCard != null) {
-                            selectedCard.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-                            selectedCard.setBackground(new Color(110, 0, 20));
-                        }
-                        card.setBorder(BorderFactory.createLineBorder(new Color(255, 153, 0), 4)); // orange border
-                        card.setBackground(new Color(140, 40, 40)); // slightly lighter shade
-                        selectedCard = card;
+                        selectClientCard(cardPanel, clientId, name, phone, email, address, imageData);
                     }
                 });
 
-                clientsContainer.add(card);
+                clientsContainer.add(cardPanel);
             }
-            System.out.println("Total clients loaded: " + rowCount);
-            clientsContainer.setPreferredSize(new Dimension(900, rowCount * 130 + 20));
+
+            if (!hasResults) {
+                JPanel noResultsPanel = new JPanel();
+                noResultsPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+                noResultsPanel.setBackground(new Color(240, 240, 240));
+                
+                JLabel noResultsLabel = new JLabel("No clients found matching your search");
+                noResultsLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
+                noResultsLabel.setForeground(new Color(100, 100, 100));
+                noResultsPanel.add(noResultsLabel);
+                
+                clientsContainer.add(noResultsPanel);
+                clientsContainer.add(new JPanel());
+            }
+
             clientsContainer.revalidate();
             clientsContainer.repaint();
-            jScrollPane1.revalidate();
-            jScrollPane1.repaint();
+            
             rs.close();
             pst.close();
             con.close();
         } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error loading clients: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error loading client data: " + e.getMessage(),
+                "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private JPanel makeLabel(String label, String value) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setOpaque(false);
-        JLabel l = new JLabel(label);
-        l.setForeground(Color.WHITE);
-        l.setFont(new Font("Tahoma", Font.BOLD, 12));
-        JLabel v = new JLabel(value != null ? value : "");
-        v.setForeground(Color.WHITE);
-        v.setFont(new Font("Tahoma", Font.PLAIN, 12));
-        panel.add(l, BorderLayout.NORTH);
-        panel.add(v, BorderLayout.CENTER);
+    private void addInfoRow(JPanel panel, String label, String value) {
+        JPanel rowPanel = new JPanel(new BorderLayout(10, 0));
+        rowPanel.setBackground(Color.WHITE);
+        
+        JLabel labelComponent = new JLabel(label);
+        labelComponent.setFont(new Font("Tahoma", Font.BOLD, 12));
+        labelComponent.setForeground(new Color(100, 100, 100));
+        
+        JLabel valueComponent = new JLabel(value);
+        valueComponent.setFont(new Font("Tahoma", Font.PLAIN, 12));
+        
+        rowPanel.add(labelComponent, BorderLayout.WEST);
+        rowPanel.add(valueComponent, BorderLayout.CENTER);
+        panel.add(rowPanel);
+        panel.add(Box.createVerticalStrut(5));
+    }
+
+    private JPanel createRentalPanel(String vehicle, String plate, String startDate, String endDate, double amount, String status) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        // Vehicle info
+        JLabel vehicleLabel = new JLabel(vehicle + " (" + plate + ")");
+        vehicleLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+        vehicleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(vehicleLabel);
+        panel.add(Box.createVerticalStrut(5));
+
+        // Dates
+        JLabel datesLabel = new JLabel(startDate + " to " + endDate);
+        datesLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+        datesLabel.setForeground(new Color(100, 100, 100));
+        datesLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(datesLabel);
+        panel.add(Box.createVerticalStrut(5));
+
+        // Amount and status
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBackground(Color.WHITE);
+        
+        JLabel amountLabel = new JLabel(String.format("₱%.2f", amount));
+        amountLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+        amountLabel.setForeground(new Color(0, 100, 0));
+        
+        JLabel statusLabel = new JLabel(status.toUpperCase());
+        statusLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
+        statusLabel.setForeground(Color.WHITE);
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
+        
+        // Set status color
+        Color statusColor;
+        if (status.equalsIgnoreCase("active")) {
+            statusColor = new Color(0, 150, 0); // Green
+        } else if (status.equalsIgnoreCase("completed")) {
+            statusColor = new Color(100, 100, 100); // Gray
+        } else if (status.equalsIgnoreCase("cancelled")) {
+            statusColor = new Color(200, 0, 0); // Red
+        } else {
+            statusColor = new Color(100, 100, 100); // Default gray
+        }
+        statusLabel.setBackground(statusColor);
+        statusLabel.setOpaque(true);
+        
+        bottomPanel.add(amountLabel, BorderLayout.WEST);
+        bottomPanel.add(statusLabel, BorderLayout.EAST);
+        
+        panel.add(bottomPanel);
+
         return panel;
+    }
+
+    private void selectClientCard(JPanel cardPanel, int clientId, String name, String phone, 
+                                String email, String address, byte[] imageData) {
+        // Reset previously selected card
+        if (selectedCard != null) {
+            selectedCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+            ));
+        }
+        
+        // Update selected card
+        selectedCard = cardPanel;
+        cardPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(0, 100, 200), 3),
+            BorderFactory.createEmptyBorder(13, 13, 13, 13)
+        ));
+        
+        // Update bottom panel fields
+        jTextField1.setText(name);
+        jTextField2.setText(phone);
+        jTextField3.setText(email);
+        jTextField4.setText(address);
+        
+        // Update client image
+        if (imageData != null && imageData.length > 0) {
+            ImageIcon imageIcon = new ImageIcon(imageData);
+            Image img = imageIcon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+            jLabel2.setIcon(new ImageIcon(img));
+        } else {
+            jLabel2.setIcon(null);
+            jLabel2.setText("No Image");
+        }
+        
+        // Load rental details
+        try {
+            Connection con = new dbConnector().getConnection();
+            String query = "SELECT r.*, v.v_make, v.v_model, v.v_plate, " +
+                          "DATE_FORMAT(r.r_start_date, '%Y-%m-%d') as formatted_start_date, " +
+                          "DATE_FORMAT(r.r_end_date, '%Y-%m-%d') as formatted_end_date " +
+                          "FROM tbl_rentals r " +
+                          "JOIN tbl_vehicles v ON r.r_vehicle_id = v.v_id " +
+                          "WHERE r.r_client_id = ? " +
+                          "ORDER BY r.r_start_date DESC LIMIT 1";
+            PreparedStatement pst = con.prepareStatement(query);
+            pst.setInt(1, clientId);
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                String vehicle = rs.getString("v_make") + " " + rs.getString("v_model");
+                String plate = rs.getString("v_plate");
+                String startDate = rs.getString("formatted_start_date");
+                String endDate = rs.getString("formatted_end_date");
+                double amount = rs.getDouble("r_total_amount");
+                
+                jTextField5.setText(vehicle + " (" + plate + ")");
+                jTextField6.setText(String.format("₱%.2f", amount));
+                jTextField7.setText(startDate != null ? startDate : "");
+                jTextField8.setText(endDate != null ? endDate : "");
+            } else {
+                jTextField5.setText("No rental");
+                jTextField6.setText("");
+                jTextField7.setText("");
+                jTextField8.setText("");
+            }
+            
+            rs.close();
+            pst.close();
+            con.close();
+        } catch (SQLException e) {
+            System.err.println("Error loading rental details: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, 
+                "Error loading rental details: " + e.getMessage(),
+                "Database Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

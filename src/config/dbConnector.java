@@ -8,7 +8,7 @@ public class dbConnector {
 
     public dbConnector() {
         try {
-            connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/vrs", "root", "");
+            connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/crs", "root", "");
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Connection Error: " + e.getMessage());
         }

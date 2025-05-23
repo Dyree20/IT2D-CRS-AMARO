@@ -9,6 +9,7 @@ import config.dbConnector;
 import config.Logger;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -88,7 +89,8 @@ private void loadVehicleCards(String searchText, String selectedType) {
     try {
         JPanel containerPanel = (JPanel) jScrollPane1.getViewport().getView();
         containerPanel.removeAll();
-        containerPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        containerPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 15));
+        containerPanel.setBackground(new Color(240, 240, 240)); // Light gray background
 
         Connection con = new dbConnector().getConnection();
         StringBuilder query = new StringBuilder("SELECT * FROM tbl_vehicles");
@@ -132,76 +134,134 @@ private void loadVehicleCards(String searchText, String selectedType) {
             
             // Create a card panel for this vehicle
             JPanel cardPanel = new JPanel();
-            cardPanel.setLayout(new BorderLayout(10, 0)); // Small gap between image and text
-            cardPanel.setPreferredSize(new Dimension(300, 150));
-            cardPanel.setBackground(new Color(128, 0, 0)); // Dark red background
-            cardPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-            
-            // Image panel (left side)
+            cardPanel.setLayout(new BorderLayout(0, 0));
+            cardPanel.setPreferredSize(new Dimension(320, 400));
+            cardPanel.setBackground(Color.WHITE);
+            cardPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+            ));
+
+            // Image panel (top)
+            JPanel imagePanel = new JPanel();
+            imagePanel.setPreferredSize(new Dimension(300, 200));
+            imagePanel.setBackground(Color.WHITE);
+            imagePanel.setLayout(new BorderLayout());
+
             JLabel imageLabel = new JLabel();
-            imageLabel.setPreferredSize(new Dimension(120, 100));
+            imageLabel.setHorizontalAlignment(JLabel.CENTER);
             if (imageData != null && imageData.length > 0) {
                 ImageIcon imageIcon = new ImageIcon(imageData);
-                Image image = imageIcon.getImage().getScaledInstance(120, 100, Image.SCALE_SMOOTH);
-                imageLabel.setIcon(new ImageIcon(image));
+                Image img = imageIcon.getImage().getScaledInstance(280, 180, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(img));
             } else {
-                imageLabel.setText("No Image");
-                imageLabel.setForeground(Color.WHITE);
+                imageLabel.setText("No Image Available");
+                imageLabel.setFont(new Font("Tahoma", Font.ITALIC, 14));
+                imageLabel.setForeground(Color.GRAY);
             }
-            
-            // Text panel (right side)
-            JPanel textPanel = new JPanel();
-            textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
-            textPanel.setOpaque(false); // Make it transparent to show the card's background
-            
-            // Create text labels
-            JLabel nameLabel = new JLabel("Name: " + make + " " + model);
-            nameLabel.setForeground(Color.WHITE);
-            nameLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
-            
-            JLabel typeYearLabel = new JLabel("Type: " + vType + " | Year: " + year + " | Plate: " + plate);
-            typeYearLabel.setForeground(Color.WHITE);
-            typeYearLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
-            
-            JLabel priceLabel = new JLabel("Price: ₱" + rate + " per day");
-            priceLabel.setForeground(Color.WHITE);
-            priceLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
-            
-            JLabel statusLabel = new JLabel("Status: " + status);
-            if (status.equalsIgnoreCase("available")) {
-                statusLabel.setForeground(new Color(0, 153, 0)); // Green
-            } else if (status.equalsIgnoreCase("rented")) {
-                statusLabel.setForeground(Color.RED);
-            } else if (status.equalsIgnoreCase("maintenance")) {
-                statusLabel.setForeground(new Color(255, 140, 0)); // Orange
-            } else {
-                statusLabel.setForeground(Color.GRAY);
-            }
+            imagePanel.add(imageLabel, BorderLayout.CENTER);
+
+            // Info panel (bottom)
+            JPanel infoPanel = new JPanel();
+            infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+            infoPanel.setBackground(Color.WHITE);
+            infoPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+
+            // Vehicle name
+            JLabel nameLabel = new JLabel(make + " " + model);
+            nameLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+            nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            infoPanel.add(nameLabel);
+            infoPanel.add(Box.createVerticalStrut(5));
+
+            // Vehicle type and year
+            JLabel typeYearLabel = new JLabel(vType + " • " + year);
+            typeYearLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+            typeYearLabel.setForeground(new Color(100, 100, 100));
+            typeYearLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            infoPanel.add(typeYearLabel);
+            infoPanel.add(Box.createVerticalStrut(5));
+
+            // Plate number
+            JLabel plateLabel = new JLabel("Plate: " + plate);
+            plateLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+            plateLabel.setForeground(new Color(100, 100, 100));
+            plateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            infoPanel.add(plateLabel);
+            infoPanel.add(Box.createVerticalStrut(5));
+
+            // Price
+            JLabel priceLabel = new JLabel("₱" + rate + " per day");
+            priceLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
+            priceLabel.setForeground(new Color(0, 100, 0));
+            priceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            infoPanel.add(priceLabel);
+            infoPanel.add(Box.createVerticalStrut(10));
+
+            // Status badge
+            JPanel statusPanel = new JPanel();
+            statusPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+            statusPanel.setBackground(Color.WHITE);
+            statusPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JLabel statusLabel = new JLabel(status.toUpperCase());
             statusLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
-            
-            // Add text labels to the text panel
-            textPanel.add(Box.createVerticalStrut(20)); // Add some top space
-            textPanel.add(nameLabel);
-            textPanel.add(Box.createVerticalStrut(10)); // Add space between labels
-            textPanel.add(typeYearLabel);
-            textPanel.add(Box.createVerticalStrut(10)); // Add space between labels
-            textPanel.add(priceLabel);
-            textPanel.add(Box.createVerticalStrut(5));
-            textPanel.add(statusLabel);
-            
-            // Add image and text panels to the card
-            cardPanel.add(imageLabel, BorderLayout.WEST);
-            cardPanel.add(textPanel, BorderLayout.CENTER);
-            
+            statusLabel.setForeground(Color.WHITE);
+            statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+            // Set status color
+            Color statusColor;
+            if (status.equalsIgnoreCase("available")) {
+                statusColor = new Color(0, 150, 0); // Green
+            } else if (status.equalsIgnoreCase("rented")) {
+                statusColor = new Color(200, 0, 0); // Red
+            } else if (status.equalsIgnoreCase("maintenance")) {
+                statusColor = new Color(255, 140, 0); // Orange
+            } else {
+                statusColor = new Color(100, 100, 100); // Gray
+            }
+            statusLabel.setBackground(statusColor);
+            statusLabel.setOpaque(true);
+            statusPanel.add(statusLabel);
+
+            infoPanel.add(statusPanel);
+
+            // Add panels to card
+            cardPanel.add(imagePanel, BorderLayout.NORTH);
+            cardPanel.add(infoPanel, BorderLayout.CENTER);
+
+            // Add hover effect
+            cardPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    cardPanel.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(0, 100, 200), 2),
+                        BorderFactory.createEmptyBorder(9, 9, 9, 9)
+                    ));
+                }
+
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    cardPanel.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                        BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                    ));
+                }
+            });
+
             // Add the card to the container
             containerPanel.add(cardPanel);
         }
         
         if (!found) {
-            JLabel noVehiclesLabel = new JLabel("No vehicles found matching your criteria.");
-            noVehiclesLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
-            noVehiclesLabel.setForeground(Color.WHITE);
-            containerPanel.add(noVehiclesLabel);
+            JPanel noResultsPanel = new JPanel();
+            noResultsPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+            noResultsPanel.setBackground(new Color(240, 240, 240));
+            
+            JLabel noVehiclesLabel = new JLabel("No vehicles found matching your criteria");
+            noVehiclesLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
+            noVehiclesLabel.setForeground(new Color(100, 100, 100));
+            noResultsPanel.add(noVehiclesLabel);
+            
+            containerPanel.add(noResultsPanel);
         }
         
         // Refresh the container
